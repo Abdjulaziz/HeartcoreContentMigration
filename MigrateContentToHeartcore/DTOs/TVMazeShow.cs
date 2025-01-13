@@ -7,7 +7,8 @@ namespace MigrateContentToHeartcore.DTOs
 		[JsonPropertyName("id")] public int Id { get; set; }
 		[JsonPropertyName("name")] public string? Name { get; set; }
 		[JsonPropertyName("image")] public Image? Image { get; set; }
-	}
+        [JsonPropertyName("summary")] public string? Summary { get; set; }
+    }
 
 
 	public class Image
