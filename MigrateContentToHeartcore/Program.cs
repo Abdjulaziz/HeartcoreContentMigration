@@ -10,6 +10,8 @@ using Refit;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Reflection;
+using MigrateContentToHeartcore;
+using Umbraco.Headless.Client.Net.Shared.Models;
 
 // Variable to track pagination of TVMaze API
 int page = 0;
@@ -78,6 +80,9 @@ foreach (var content in root)
             foreach (var item in results.Content.Items)
             {
                 tvShows.Add(item);
+                object generes;
+                item.Properties.TryGetValue("showGenres", out generes);
+                Console.WriteLine(generes);
             }
 
             // Check if more pages exist; if not, break the loop
@@ -184,7 +189,7 @@ foreach (var content in root)
         var tvShowGenres = apiShow.Genres;
 
         // Create block list items for genres
-        var blockListItems = new List<object>();
+        var blockListItems = new List<MyBlocklistItem>();
 
         for (int i = 0; i < tvShowGenres.Length; i++)
         {
@@ -194,20 +199,20 @@ foreach (var content in root)
             var blockKey = Guid.NewGuid().ToString();
 
             // Construct a block item for each genre
-            var blockListItem = new
+            MyBlocklistItem blockListItem = new();
+            blockListItem.content = new MyContent()
             {
-                    key = blockKey,
-                    contentTypeAlias = "genre",
-                    title = genre,
-                    indexNumber = i,
-                
+                contentTypeAlias = "genre",
+                title = genre,
+                indexNumber = i.ToString(),
             };
+
 
             blockListItems.Add(blockListItem);
         }
 
         // Serialize the block list items
-        var blockListJson = JsonConvert.SerializeObject(blockListItems);
+        string blockListJson = JsonConvert.SerializeObject(blockListItems);
 
         Console.WriteLine($"block list json {blockListJson}");
 
