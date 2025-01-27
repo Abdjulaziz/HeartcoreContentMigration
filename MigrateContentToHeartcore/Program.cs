@@ -123,6 +123,8 @@ foreach (var content in root)
     {
         folderId = folder.Id;
     }
+
+
     // Create new TV shows in Umbraco for items not already present
     foreach (var apiShow in apiShowsList)
     {
@@ -163,7 +165,7 @@ foreach (var content in root)
             new FileInfoPart(fileInfo, fileName, $"image/{fileExtension}") // File info
         );
 
-            var createdMedia = await ContentManagementService.Media.Create(newMedia);
+        var createdMedia = await ContentManagementService.Media.Create(newMedia);
 
         var dictionary = new List<Dictionary<string, string>>();
         var tvShowMediaRefrence = new Dictionary<string, string>() { 
@@ -178,11 +180,38 @@ foreach (var content in root)
         dictionary.Add(tvShowMediaRefrence);
 
         var tvShowMediaRefrenceJson = JsonConvert.SerializeObject(dictionary);
-        var tvShowGenreNumber = apiShow.Genres.Length;
-        var tvShowGenreType = apiShow.Genres;
-        //blocklist item
+       
+        var tvShowGenres = apiShow.Genres;
 
-        // Initialize new content item
+        // Create block list items for genres
+        var blockListItems = new List<object>();
+
+        for (int i = 0; i < tvShowGenres.Length; i++)
+        {
+            var genre = tvShowGenres[i];
+
+            // Generate a unique key for the block
+            var blockKey = Guid.NewGuid().ToString();
+
+            // Construct a block item for each genre
+            var blockListItem = new
+            {
+                    key = blockKey,
+                    contentTypeAlias = "genre",
+                    title = genre,
+                    indexNumber = i,
+                
+            };
+
+            blockListItems.Add(blockListItem);
+        }
+
+        // Serialize the block list items
+        var blockListJson = JsonConvert.SerializeObject(blockListItems);
+
+        Console.WriteLine($"block list json {blockListJson}");
+
+        // Initialize new content itemsss
         var newShow = new Content
         {
             ContentTypeAlias = "tvShow",
@@ -191,10 +220,10 @@ foreach (var content in root)
 
         // Set properties for the new content item
         newShow.SetValue("name", apiShow.Name); // Set name
-        newShow.SetValue("showGenre" , apiShow.Genres);
         newShow.SetValue("showSummary", apiShow.Summary ?? "Summary not available"); // Set summary
+        newShow.SetValue("showGenres", blockListJson);
         newShow.SetValue("showId", apiShow.Id); // Set ID
-        newShow.SetValue("showImage", tvShowMediaRefrenceJson);
+        newShow.SetValue("showImage", tvShowMediaRefrenceJson); // Set image reference
         try
         {
             // Save and publish the content item in Umbraco
